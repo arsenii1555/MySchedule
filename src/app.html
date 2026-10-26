@@ -1,0 +1,417 @@
+<title>Пара</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Розклад як дзвінкова таблиця: зліва рейка з номером пари й часом, справа предмет; поточна пара «дзвенить» сигнальним кольором */
+:root{
+  --bg:#eceff4; --surface:#ffffff; --surface2:#f5f7fa; --ink:#141a26; --muted:#5a6476; --faint:#8a93a3; --line:#d8dde6;
+  --accent:#1d3b8f; --accent-soft:#e3e9f8; --on-accent:#ffffff;
+  --bell:#d24a12; --bell-soft:#fbe9e0;
+  --lec:#1d3b8f; --lec-bg:#e3e9f8; --pr:#0f6b4f; --pr-bg:#dff2ea; --sem:#7a3f9a; --sem-bg:#f1e6f7;
+  --shadow:0 1px 2px rgba(20,26,38,.06),0 4px 14px rgba(20,26,38,.05);
+  --f-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e121a; --surface:#171c27; --surface2:#1d2330; --ink:#e8ecf3; --muted:#9aa4b6; --faint:#6c7689; --line:#2a3141;
+  --accent:#8aa6ff; --accent-soft:#1f2a4a; --on-accent:#0e121a;
+  --bell:#ff7a3d; --bell-soft:#3a2216;
+  --lec:#9fb6ff; --lec-bg:#1f2a4a; --pr:#5fd3a6; --pr-bg:#16342a; --sem:#d29cf0; --sem-bg:#33223f;
+  --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e121a; --surface:#171c27; --surface2:#1d2330; --ink:#e8ecf3; --muted:#9aa4b6; --faint:#6c7689; --line:#2a3141;
+  --accent:#8aa6ff; --accent-soft:#1f2a4a; --on-accent:#0e121a;
+  --bell:#ff7a3d; --bell-soft:#3a2216;
+  --lec:#9fb6ff; --lec-bg:#1f2a4a; --pr:#5fd3a6; --pr-bg:#16342a; --sem:#d29cf0; --sem-bg:#33223f;
+  --shadow:none; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font:15px/1.4 var(--f-body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(84px + env(safe-area-inset-bottom,0px))}
+
+/* шапка */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;gap:10px;padding-block:12px 10px}
+.mark{font:700 22px/1 var(--f-display);letter-spacing:-.02em;display:flex;align-items:baseline;gap:2px}
+.mark i{width:7px;height:7px;border-radius:50%;background:var(--bell);display:inline-block;transform:translateY(-1px)}
+.grp{margin-left:auto;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 8px 6px 12px;font-weight:600;font-size:14px;min-width:0}
+.grp span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grp small{font:600 11px var(--f-mono);color:var(--muted)}
+.frac{display:inline-grid;grid-template-rows:auto auto;line-height:1;font:600 9.5px/1.05 var(--f-mono);text-transform:uppercase;letter-spacing:.04em;padding:3px 6px;border-radius:6px;background:var(--surface2);color:var(--faint)}
+.frac b{font-weight:600}
+.frac b:first-child{border-bottom:1px solid currentColor;padding-bottom:1px;margin-bottom:1px}
+.frac.c b:first-child,.frac.z b:last-child{color:var(--accent)}
+
+/* вкладки внизу */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+nav.tabs button{background:none;border:0;padding:6px 0;display:grid;justify-items:center;gap:2px;font-size:12px;font-weight:600;color:var(--faint)}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-selected="true"]{color:var(--accent)}
+
+/* смуга днів */
+.days{display:grid;grid-template-columns:auto repeat(5,1fr) auto;gap:4px;align-items:stretch;margin-block:4px 14px}
+.days .nav{background:none;border:0;color:var(--muted);font-size:18px;padding:0 4px}
+.day{border:1px solid transparent;background:none;border-radius:12px;padding:6px 0 7px;display:grid;justify-items:center;gap:1px}
+.day b{font:600 11px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.day span{font:600 17px var(--f-mono)}
+.day.today span{color:var(--bell)}
+.day[aria-pressed="true"]{background:var(--surface);border-color:var(--line);box-shadow:var(--shadow)}
+.day .dots{display:flex;gap:2px;height:4px}
+.day .dots i{width:4px;height:4px;border-radius:50%;background:var(--faint);opacity:.6}
+
+/* картка «зараз / далі» */
+.bell{border-radius:var(--r);padding:14px 16px;display:grid;gap:4px;margin-bottom:14px;background:var(--surface);border:1px solid var(--line)}
+.bell.live{background:var(--bell-soft);border-color:transparent}
+.bell .lbl{font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.bell.live .lbl{color:var(--bell)}
+.bell .big{font:600 19px/1.25 var(--f-body);text-wrap:balance}
+.bell .sub{color:var(--muted);font-size:14px}
+.bell .bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:6px}
+.bell .bar i{display:block;height:100%;background:var(--bell)}
+
+/* список пар */
+.h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:18px 0 8px}
+.h h2{font:600 17px var(--f-body);margin:0}
+.h small{color:var(--muted);font-size:13px}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.row{display:grid;grid-template-columns:52px 1fr auto;gap:12px;padding:12px 14px;border-top:1px solid var(--line);align-items:start}
+.row:first-child{border-top:0}
+.row.cont{border-top:1px dashed var(--line)}
+.rail{display:grid;justify-items:start;gap:0;font:500 12px/1.35 var(--f-mono);color:var(--muted)}
+.rail b{font:700 20px/1 var(--f-display);color:var(--ink);margin-bottom:3px}
+.row.now .rail b{color:var(--bell)}
+.row.now{background:var(--bell-soft)}
+.row.past .body,.row.past .room{opacity:.55}
+.body{min-width:0;display:grid;gap:3px}
+.subj{font-weight:600;line-height:1.3}
+.meta{color:var(--muted);font-size:13.5px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.kind{font:600 11px var(--f-body);padding:2px 7px;border-radius:999px;background:var(--lec-bg);color:var(--lec)}
+.kind.pr{background:var(--pr-bg);color:var(--pr)}
+.kind.sem{background:var(--sem-bg);color:var(--sem)}
+.wk{font:600 10.5px var(--f-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--accent);border:1px solid currentColor;border-radius:5px;padding:0 4px}
+.room{font:600 14px var(--f-mono);text-align:right;white-space:nowrap}
+.room small{display:block;font:500 11px var(--f-body);color:var(--faint)}
+.gap{padding:7px 14px 7px 78px;font-size:12.5px;color:var(--faint);border-top:1px solid var(--line);background:var(--surface2)}
+.pick{color:var(--accent);background:none;border:0;padding:0;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.empty{padding:22px 16px;color:var(--muted);text-align:center}
+
+/* сегмент */
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{border:0;background:none;border-radius:9px;padding:8px;font-weight:600;color:var(--muted)}
+.seg button[aria-checked="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.note{color:var(--muted);font-size:13px;margin:8px 2px 0}
+
+/* пошук */
+.search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 12px}
+.search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:16px;color:var(--ink);padding:12px 0;outline:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:500}
+.grps{font:500 12px var(--f-mono);color:var(--faint)}
+
+/* налаштування / вибір групи */
+.setup{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;padding-top:env(safe-area-inset-top,0px)}
+.setup .wrap{padding-block:20px 40px}
+.setup h1{font:700 30px/1.1 var(--f-display);letter-spacing:-.02em;margin:18px 0 6px;text-wrap:balance}
+.setup p.lead{color:var(--muted);margin:0 0 20px;max-width:40ch}
+.step{font:600 12px var(--f-mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.grid{display:grid;gap:8px}
+.grid.c4{grid-template-columns:repeat(4,1fr)}
+.grid.c3{grid-template-columns:repeat(3,1fr)}
+.grid.c1{grid-template-columns:1fr}
+.opt{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px 10px;font-weight:600;text-align:center;display:grid;gap:2px}
+.opt small{font-weight:500;color:var(--muted);font-size:12.5px}
+.opt.big{font:700 26px/1 var(--f-display);padding:18px 0}
+.opt.left{text-align:left;padding:13px 14px}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.stream{margin-top:14px}
+.stream .lab{font:600 11px var(--f-mono);color:var(--faint);letter-spacing:.06em;text-transform:uppercase;margin:0 2px 6px}
+.back{background:none;border:0;color:var(--muted);padding:6px 0;font-weight:600}
+.btn{border:0;border-radius:12px;padding:13px 16px;font-weight:600;background:var(--accent);color:var(--on-accent);width:100%}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.sheet-list{display:grid;gap:8px;margin-top:16px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-top:1px solid var(--line)}
+.kv:first-child{border-top:0}
+.kv span{color:var(--muted)}
+.kv b{text-align:right}
+.hint{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:13.5px;margin-top:14px;display:flex;gap:10px;align-items:flex-start}
+.hint button{margin-left:auto;background:none;border:0;color:var(--muted);font-size:18px;line-height:1;padding:0 2px}
+.demo{background:var(--bell-soft);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:13px;margin-bottom:12px}
+.opt.elopt{padding:0;display:grid;gap:0;text-align:left}
+.elbtn{display:flex;gap:12px;align-items:flex-start;background:none;border:0;padding:13px 14px;text-align:left;font-weight:600;width:100%}
+.elbtn small{display:block;font-weight:500;color:var(--muted);font-size:12.5px;margin-top:2px}
+.box{flex:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--faint);margin-top:1px;display:grid;place-items:center}
+.elbtn[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent)}
+.elbtn[aria-pressed="true"] .box::after{content:"";width:9px;height:5px;border:2px solid var(--on-accent);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.egs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 14px 12px 46px;color:var(--muted);font-size:13px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.elopt[aria-pressed="true"]{color:var(--ink)}
+.sticky-cta{position:sticky;bottom:0;display:grid;gap:8px;padding-block:14px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 30%)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
+a{color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.row,.bell{transition:background .3s}}
+
+/* заставка при запуску: «П•» → крапка відʼїжджає, зʼявляється «ара» → логотип летить у шапку */
+.splash{position:fixed;inset:0;z-index:50;display:grid;place-items:center}
+.sp-bg{position:absolute;inset:0;background:var(--bg)}
+.sp-mark{position:relative;display:flex;align-items:baseline;font:700 clamp(56px,19vw,88px)/1 var(--f-display);letter-spacing:-.02em;color:var(--ink);opacity:0;transform-origin:0 0}
+.sp-ara{display:inline-block;white-space:nowrap;width:0;clip-path:inset(-.5em -.06em -.5em 0)}
+.sp-ara span{display:inline-block}
+.sp-dot{width:.32em;height:.32em;margin-left:.09em;border-radius:50%;background:var(--bell);transform:translateY(-.045em)}
+.splashing header .mark{visibility:hidden}
+@media (prefers-reduced-motion:reduce){.splash{display:none}}
+</style>
+
+<div id="app"></div>
+<div id="setup" class="setup" hidden></div>
+<div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+<div id="splash" class="splash" aria-hidden="true"><div class="sp-bg"></div><div class="sp-mark"><span class="sp-p">П</span><span class="sp-ara"><span>а</span><span>р</span><span>а</span></span><i class="sp-dot"></i></div></div>
+
+<script>
+const DATA=/*DATA*/null;
+const KEY="para.v1";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DOWF=["Неділя","Понеділок","Вівторок","Середа","Четвер","Пʼятниця","Субота"];
+const DOWS=["Нд","Пн","Вт","Ср","Чт","Пт","Сб"];
+const MON=["січня","лютого","березня","квітня","травня","червня","липня","серпня","вересня","жовтня","листопада","грудня"];
+const LANG={en:"Англійська",de:"Німецька",fr:"Французька",es:"Іспанська",it:"Італійська",pl:"Польська"};
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse=s=>{const[a,b,c]=s.split("-").map(Number);return new Date(a,b-1,c);};
+const today0=()=>{const d=new Date();d.setHours(0,0,0,0);return d;};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const mondayOf=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x;};
+const mins=t=>{const[h,m]=t.split(":").map(Number);return h*60+m;};
+const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes();};
+const fmtT=t=>t.replace(/^0/,"");
+const dur=m=>{const h=Math.floor(m/60),r=m%60;return (h?h+" год":"")+(h&&r?" ":"")+(r?r+" хв":"")||"0 хв";};
+const TR={"А":"a","Б":"b","В":"v","Г":"h","Ґ":"g","Д":"d","Е":"e","Є":"ie","Ж":"zh","З":"z","И":"y","І":"i","Ї":"i","Й":"i","К":"k","Л":"l","М":"m","Н":"n","О":"o","П":"p","Р":"r","С":"s","Т":"t","У":"u","Ф":"f","Х":"kh","Ц":"ts","Ч":"ch","Ш":"sh","Щ":"shch","Ю":"iu","Я":"ia"};
+const slug=g=>g.replace(/^ЮРД-/i,"").toUpperCase().split("").map(c=>TR[c]!=null?TR[c]:/[A-Z0-9]/.test(c)?c.toLowerCase():"-").join("").replace(/-+/g,"-").replace(/^-|-$/g,"");
+const flKey=l=>l.fl+":"+l.t;
+const kindCls=k=>/лекц/i.test(k)?"":/семін/i.test(k)?"sem":"pr";
+
+/* ---------- стан ---------- */
+let sel=null; // {c,g,sg,fl}
+const ui={tab:"today",day:null,wkOff:0,wt:null,q:""};
+try{sel=JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){}
+try{const t=localStorage.getItem(KEY+".tab");if(t)ui.tab=t;}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(sel));}catch(e){}}
+const course=n=>DATA.courses.find(c=>c.n===n);
+const allGroups=()=>DATA.courses.flatMap(c=>c.groups.map(g=>({c:c.n,g})));
+if(sel&&!(course(sel.c)&&course(sel.c).groups.includes(sel.g)))sel=null;
+
+/* ---------- тижні ---------- */
+function weekType(d){const diff=Math.round((mondayOf(d)-parse(DATA.ref.mon))/(7*864e5));const even=((diff%2)+2)%2===0;return even?DATA.ref.t:(DATA.ref.t==="z"?"c":"z");}
+const WT={c:"чисельник",z:"знаменник"};
+const fracHTML=t=>'<span class="frac '+t+'" title="'+WT[t]+'"><b>чис</b><b>знам</b></span>';
+const inSem=d=>{const s=ymd(d);return s>=DATA.sem.start&&s<=DATA.sem.end;};
+
+/* ---------- пари групи ---------- */
+function subgroupsOf(c,g){const s=new Set();course(c).L.forEach(l=>{if(l.sg&&l.g.includes(g))s.add(l.sg);});return [...s].sort();}
+function flOptions(c,g){const m=new Map();course(c).L.forEach(l=>{if(l.fl&&l.g.includes(g)){const k=flKey(l);if(!m.has(k))m.set(k,{k,fl:l.fl,t:l.t,slots:new Set()});m.get(k).slots.add(l.d+"-"+l.p);}});
+  const o=[...m.values()];const ord=x=>x.fl==="en"?0:1;return o.sort((a,b)=>ord(a)-ord(b)||a.fl.localeCompare(b.fl)||a.t.localeCompare(b.t,"uk"));}
+function streamOf(c,g){const s=(course(c).streams||[]).find(x=>x.includes(g));return s||[g];}
+function lessonsFor(s,d,wt){if(!s)return[];const C=course(s.c);const out=[];const flSlots=new Map(),elSlots=new Map();
+  C.L.forEach(l=>{if(l.d!==d||!l.g.includes(s.g))return;if(wt&&l.w&&l.w!==wt)return;if(l.sg&&s.sg&&l.sg!==s.sg)return;
+    if(l.fl){if(s.fl){if(flKey(l)===s.fl)out.push(l);}else{const k=l.p+"|"+(l.w||"");if(!flSlots.has(k)){const v={d:l.d,p:l.p,w:l.w,s:"Іноземна мова",k:l.k,t:"",r:"",pickFl:true,n:0};flSlots.set(k,v);out.push(v);}flSlots.get(k).n++;}return;}
+    if(l.el){const ch=s.el&&s.el[l.el];
+      if(s.elSet){if(ch==null)return;if(ch&&l.eg&&!l.eg.includes(ch))return;out.push(l);}
+      else{const k="el|"+l.p+"|"+(l.w||"");if(!elSlots.has(k)){const v={d:l.d,p:l.p,w:l.w,s:"Вибіркові дисципліни",k:"",t:"",r:"",pickEl:true,subs:new Set()};elSlots.set(k,v);out.push(v);}elSlots.get(k).subs.add(l.el);}
+      return;}
+    out.push(l);});
+  return out.sort((a,b)=>mins(tm(a)[0])-mins(tm(b)[0])||a.p-b.p||(a.w||"").localeCompare(b.w||"")||(a.el||"").localeCompare(b.el||"","uk")||(a.sg||0)-(b.sg||0));}
+function electives(c,g){const m=new Map();course(c).L.forEach(l=>{if(l.el&&l.g.includes(g)){if(!m.has(l.el))m.set(l.el,{el:l.el,ct:l.ct||"",egs:new Set(),n:0});const e=m.get(l.el);(l.eg||[]).forEach(x=>e.egs.add(x));e.n++;}});
+  return [...m.values()].sort((a,b)=>a.el.localeCompare(b.el,"uk"));}
+const T=p=>DATA.times[p]||["",""];
+const tm=l=>l.time||T(l.p);
+
+/* ---------- рендер рядків ---------- */
+function rowsHTML(ls,opts){opts=opts||{};if(!ls.length)return '<div class="list"><div class="empty">'+(opts.empty||"Пар немає")+'</div></div>';
+  const nm=opts.live?nowMin():-1;let h="",prevP=null,prevEnd=null;
+  ls.forEach(l=>{const[t1,t2]=tm(l);const cont=prevP===l.p&&!l.time;
+    if(prevEnd!=null&&!cont&&!opts.groups){const g=mins(t1)-prevEnd;if(g>=40)h+='<div class="gap">Вікно · '+dur(g)+'</div>';}
+    const now=opts.live&&nm>=mins(t1)&&nm<mins(t2),past=opts.live&&nm>=mins(t2);
+    const meta=[];if(l.k)meta.push('<span class="kind '+kindCls(l.k)+'">'+esc(l.k)+'</span>');
+    if(l.w&&opts.showW)meta.push('<span class="wk">'+(l.w==="c"?"чис":"знам")+'</span>');
+    if(l.sg)meta.push('<span>'+l.sg+' підгрупа</span>');
+    if(l.fl&&l.fl!=="en")meta.push('<span>'+LANG[l.fl]+'</span>');
+    if(l.el){meta.push('<span class="wk" style="color:var(--sem)">'+esc(l.ct||"вибір")+'</span>');if(l.eg&&l.eg.length)meta.push('<span>'+(l.eg.length===1?l.eg[0]+' група':'групи '+l.eg[0]+'–'+l.eg[l.eg.length-1])+'</span>');}
+    if(l.time)meta.push('<span>свій час</span>');
+    if(l.pickEl)meta.push('<span>'+l.subs.size+' '+plural(l.subs.size,"предмет","предмети","предметів")+' на вибір</span><button class="pick" data-act="pickEl">обери свої</button>');
+    if(l.pickFl)meta.push('<button class="pick" data-act="pickFl">обери свою групу</button>');
+    else if(l.t)meta.push('<span>'+esc(l.t)+'</span>');
+    if(opts.groups&&l.g)meta.push('<span class="grps">'+esc(shortGroups(l.g))+'</span>');
+    h+='<div class="row'+(cont?" cont":"")+(now?" now":"")+(past?" past":"")+(l.el?" el":"")+'"><div class="rail">'+(cont?'':'<b>'+l.p+'</b><span>'+fmtT(t1)+'</span><span>'+fmtT(t2)+'</span>')+'</div>'+
+      '<div class="body"><div class="subj">'+esc(l.s==="ДВВС"?"ДВВС — дисципліни вільного вибору":l.s)+(opts.dayLbl?' <span class="grps">'+DOWS[l.d]+'</span>':'')+'</div><div class="meta">'+meta.join("")+'</div></div>'+
+      '<div class="room">'+esc(l.r||"")+(l.r?'<small>ауд.</small>':'')+'</div></div>';
+    prevP=l.p;prevEnd=mins(t2);});
+  return '<div class="list">'+h+'</div>';}
+function shortGroups(g){if(g.length===1)return g[0];const pre=g[0].replace(/[^-]+$/,"");return g.every(x=>x.startsWith(pre))?pre+g.map(x=>x.slice(pre.length)).join(", "):g.join(", ");}
+
+/* ---------- Сьогодні ---------- */
+function bellCard(){const t=today0(),dow=t.getDay();const nm=nowMin();
+  const dayLs=d=>inSem(d)&&d.getDay()>=1&&d.getDay()<=6?lessonsFor(sel,d.getDay(),weekType(d)):[];
+  const ls=dayLs(t).filter(l=>!l.pickFl||true);
+  const cur=ls.find(l=>nm>=mins(tm(l)[0])&&nm<mins(tm(l)[1]));
+  if(cur){const[a,b]=tm(cur);const left=mins(b)-nm,pc=Math.round((nm-mins(a))/(mins(b)-mins(a))*100);const nx=ls.find(l=>l.p>cur.p);
+    return '<div class="bell live"><div class="lbl">Зараз · '+cur.p+' пара · ще '+dur(left)+'</div><div class="big">'+esc(cur.s)+'</div><div class="sub">'+[cur.r?"ауд. "+esc(cur.r):"",cur.pickFl?"обери групу з мови":cur.pickEl?"обери свої вибіркові":esc(cur.t)].filter(Boolean).join(" · ")+(nx?'<br>Далі о '+fmtT(tm(nx)[0])+': '+esc(nx.s)+(nx.r?', '+esc(nx.r):''):'')+'</div><div class="bar"><i style="width:'+pc+'%"></i></div></div>';}
+  const nx=ls.find(l=>mins(tm(l)[0])>nm);
+  if(nx){const st=mins(tm(nx)[0]);return '<div class="bell"><div class="lbl">Далі · '+nx.p+' пара о '+fmtT(tm(nx)[0])+' · через '+dur(st-nm)+'</div><div class="big">'+esc(nx.s)+'</div><div class="sub">'+[nx.r?"ауд. "+esc(nx.r):"",nx.pickFl?"обери групу з мови":nx.pickEl?"обери свої вибіркові":esc(nx.t)].filter(Boolean).join(" · ")+'</div></div>';}
+  for(let i=1;i<=10;i++){const d=addDays(t,i);const L=dayLs(d);if(L.length){const f=L[0];
+    return '<div class="bell"><div class="lbl">'+(ls.length?"Пари на сьогодні закінчились":"Сьогодні пар немає")+'</div><div class="big">'+(i===1?"Завтра":DOWF[d.getDay()]+", "+d.getDate()+" "+MON[d.getMonth()])+' перша о '+fmtT(tm(f)[0])+'</div><div class="sub">'+esc(f.s)+(f.r?' · ауд. '+esc(f.r):'')+'</div></div>';}}
+  return '<div class="bell"><div class="lbl">Найближчим часом пар немає</div><div class="big">Відпочивай</div></div>';}
+function viewToday(){const t=today0();if(!ui.day){const dw=t.getDay();ui.day=dw===0?addDays(t,1):dw===6?addDays(t,2):t;ui.wkOff=0;}
+  const mon=mondayOf(ui.day);const wt=weekType(mon);let strip='<div class="days"><button class="nav" data-act="wk" data-n="-1" aria-label="Попередній тиждень">‹</button>';
+  for(let i=0;i<5;i++){const d=addDays(mon,i);const n=inSem(d)?lessonsFor(sel,d.getDay(),wt).length:0;
+    strip+='<button class="day'+(ymd(d)===ymd(t)?" today":"")+'" data-act="day" data-d="'+ymd(d)+'" aria-pressed="'+(ymd(d)===ymd(ui.day))+'"><b>'+DOWS[d.getDay()]+'</b><span>'+d.getDate()+'</span><span class="dots">'+'<i></i>'.repeat(Math.min(n,5))+'</span></button>';}
+  strip+='<button class="nav" data-act="wk" data-n="1" aria-label="Наступний тиждень">›</button></div>';
+  const d=ui.day,ls=inSem(d)?lessonsFor(sel,d.getDay(),wt):[];const isT=ymd(d)===ymd(t);
+  const rel=isT?"Сьогодні":ymd(d)===ymd(addDays(t,1))?"Завтра":DOWF[d.getDay()];
+  return demoNote()+bellCard()+strip+'<div class="h"><h2>'+rel+', '+d.getDate()+' '+MON[d.getMonth()]+'</h2><small>'+WT[wt]+' · '+ls.length+' '+plural(ls.length,"пара","пари","пар")+'</small></div>'+
+    rowsHTML(ls,{live:isT,empty:inSem(d)?"Цього дня пар немає":"Поза семестром"})+installHint();}
+const plural=(n,a,b,c)=>{const m=n%10,h=n%100;return m===1&&h!==11?a:m>=2&&m<=4&&(h<12||h>14)?b:c;};
+
+/* ---------- Тиждень ---------- */
+function viewWeek(){const cur=weekType(today0());const wt=ui.wt||cur;
+  let h=demoNote()+'<div class="seg" role="radiogroup" aria-label="Тип тижня"><button role="radio" data-act="wt" data-t="c" aria-checked="'+(wt==="c")+'">Чисельник</button><button role="radio" data-act="wt" data-t="z" aria-checked="'+(wt==="z")+'">Знаменник</button></div>'+
+   '<p class="note">Цей тиждень — '+WT[cur]+', наступний — '+WT[cur==="c"?"z":"c"]+'.</p>';
+  for(let d=1;d<=6;d++){const ls=lessonsFor(sel,d,wt);if(d===6&&!ls.length)continue;h+='<div class="h"><h2>'+DOWF[d]+'</h2><small>'+(ls.length?ls.length+' '+plural(ls.length,"пара","пари","пар")+' · '+fmtT(tm(ls[0])[0])+'–'+fmtT(tm(ls[ls.length-1])[1]):'вільний день')+'</small></div>'+rowsHTML(ls,{empty:"Пар немає"});}
+  return h;}
+
+/* ---------- Пошук ---------- */
+const norm=s=>String(s||"").toLowerCase().replace(/[ʼ’'`]/g,"").replace(/\s+/g," ").trim();
+function viewSearch(){let h='<div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" inputmode="search" placeholder="Викладач, аудиторія або предмет" aria-label="Пошук" value="'+esc(ui.q)+'" autocomplete="off"></div>';
+  h+='<div id="res">'+searchRes()+'</div>';return h;}
+function searchRes(){const q=norm(ui.q);if(q.length<2)return '<p class="note">Знайди, де і коли пари у викладача, що зараз в аудиторії або коли предмет у будь-якої групи факультету. Наприклад: <button class="pick" data-act="q" data-q="Ничка">Ничка</button>, <button class="pick" data-act="q" data-q="402Ю">402Ю</button>, <button class="pick" data-act="q" data-q="Логіка">Логіка</button>.</p>';
+  const hits=[];DATA.courses.forEach(C=>C.L.forEach(l=>{if(norm(l.t).includes(q)||norm(l.r).replace(/\s/g,"").includes(q.replace(/\s/g,""))||norm(l.s).includes(q))hits.push(Object.assign({c:C.n},l));}));
+  if(!hits.length)return '<div class="list" style="margin-top:12px"><div class="empty">Нічого не знайдено за «'+esc(ui.q)+'»</div></div>';
+  const wt=weekType(today0());let h='<p class="note">'+hits.length+' '+plural(hits.length,"заняття","заняття","занять")+'. Позначка «чис» чи «знам» — лише по чисельнику чи знаменнику; цей тиждень — '+WT[wt]+'.</p>';
+  for(let d=1;d<=6;d++){const ls=hits.filter(l=>l.d===d).sort((a,b)=>a.p-b.p||a.c-b.c);if(!ls.length)continue;
+    const merged=[];ls.forEach(l=>{const m=merged.find(x=>x.p===l.p&&x.s===l.s&&x.t===l.t&&x.r===l.r&&x.w===l.w&&x.k===l.k);if(m)m.g=[...new Set(m.g.concat(l.g))];else merged.push(Object.assign({},l,{g:l.g.slice()}));});
+    h+='<div class="h"><h2>'+DOWF[d]+'</h2><small>'+merged.length+'</small></div>'+rowsHTML(merged.slice(0,60),{showW:true,groups:true});}
+  return h;}
+
+/* ---------- вибір групи ---------- */
+let su=null;
+function openSetup(start){su=Object.assign({step:1,c:null,g:null,sg:0,fl:""},start||{});renderSetup();$("setup").hidden=false;}
+function closeSetup(){$("setup").hidden=true;su=null;}
+function renderSetup(){const s=su;let h='<div class="wrap">';
+  if(sel||s.step>1)h+='<button class="back" data-act="suBack">‹ '+(s.step>1?"Назад":"Скасувати")+'</button>';
+  if(s.step===1){h+='<div class="step">Крок 1</div><h1>'+(sel?"Зміни групу":"Розклад юрфаку ЛНУ")+'</h1><p class="lead">Обери курс і групу. Програма запамʼятає вибір і щоразу відкриватиме твій розклад.</p><div class="grid c4">'+
+    DATA.courses.map(C=>'<button class="opt big" data-act="suC" data-c="'+C.n+'">'+C.n+'<small>курс</small></button>').join("")+'</div>';
+  }
+  else if(s.step===2){const C=course(s.c);h+='<div class="step">Крок 2 · '+s.c+' курс</div><h1>Твоя група</h1><p class="lead">Групи згруповані за потоками: у потоку спільні лекції та іноземна мова.</p>';
+    (C.streams&&C.streams.length?C.streams:[C.groups]).forEach((st,i)=>{h+='<div class="stream"><div class="lab">Потік '+(i+1)+'</div><div class="grid c3">'+st.map(g=>'<button class="opt" data-act="suG" data-g="'+esc(g)+'">'+esc(g)+'</button>').join("")+'</div></div>';});}
+  else if(s.step===3){h+='<div class="step">'+esc(s.g)+'</div><h1>Твоя підгрупа</h1><p class="lead">На деяких заняттях група ділиться навпіл. Номер підгрупи є в розпорядженні про поділ на підгрупи на сайті факультету.</p><div class="grid c3">'+
+    subgroupsOf(s.c,s.g).map(n=>'<button class="opt big" data-act="suSg" data-n="'+n+'">'+n+'<small>підгрупа</small></button>').join("")+'<button class="opt" data-act="suSg" data-n="0">Не знаю<small>показувати обидві</small></button></div>';}
+  else if(s.step===4){const o=flOptions(s.c,s.g);const st=streamOf(s.c,s.g);h+='<div class="step">'+esc(s.g)+(s.sg?' · '+s.sg+' підгрупа':'')+'</div><h1>Група з іноземної мови</h1><p class="lead">Англійська йде за рівнями на весь потік ('+esc(shortGroups(st))+'). Обери свого викладача.</p><div class="grid c1">'+
+    o.map(x=>{const ex=course(s.c).L.find(l=>l.fl&&flKey(l)===x.k);return '<button class="opt left" data-act="suFl" data-k="'+esc(x.k)+'">'+esc(x.t||"Викладач не вказаний")+'<small>'+LANG[x.fl]+' мова'+(ex&&ex.r?' · напр., ауд. '+esc(ex.r):'')+'</small></button>';}).join("")+
+    '<button class="opt left" data-act="suFl" data-k="">Ще не знаю<small>показувати «Іноземна мова» без викладача й аудиторії</small></button></div>';}
+  else if(s.step===5){const E=electives(s.c,s.g);const sel_=s.el||{};const n=Object.keys(sel_).length;
+    h+='<div class="step">'+esc(s.g)+' · вибіркові</div><h1>Мої вибіркові</h1><p class="lead">Познач предмети, які відвідуєш, і свою групу в кожному. У розкладі будуть лише вони. Список спільний для всього '+s.c+' курсу.</p><div class="grid c1">'+
+    E.map(e=>{const on=e.el in sel_;const egs=[...e.egs].sort((a,b)=>a-b);
+      return '<div class="opt left elopt" aria-pressed="'+on+'"><button class="elbtn" data-act="suEl" data-el="'+esc(e.el)+'" aria-pressed="'+on+'"><span class="box" aria-hidden="true"></span><span>'+esc(e.el)+'<small>'+esc(e.ct||"вибіркова")+(egs.length?' · '+egs.length+' '+plural(egs.length,"група","групи","груп"):'')+'</small></span></button>'+
+        (on&&egs.length?'<div class="egs"><span>Моя група:</span>'+egs.map(g=>'<button class="chip" data-act="suEg" data-el="'+esc(e.el)+'" data-n="'+g+'" aria-pressed="'+(sel_[e.el]===g)+'">'+g+'</button>').join("")+'<button class="chip" data-act="suEg" data-el="'+esc(e.el)+'" data-n="0" aria-pressed="'+(sel_[e.el]===0)+'">не знаю</button></div>':'')+'</div>';}).join("")+
+    '</div><div class="sticky-cta"><button class="btn" data-act="suElDone">'+(n?'Готово · '+n+' '+plural(n,"предмет","предмети","предметів"):'Готово')+'</button>'+(n?'':'<button class="btn ghost" data-act="suElSkip">Обрати пізніше</button>')+'</div>';}
+  $("setup").innerHTML=h+'</div>';if(!s.keep)$("setup").scrollTop=0;s.keep=false;}
+function suSeq(s){const q=[1,2];if(!s.g)return q;if(subgroupsOf(s.c,s.g).length)q.push(3);if(flOptions(s.c,s.g).length)q.push(4);if(electives(s.c,s.g).length)q.push(5);return q;}
+function suNext(){const q=suSeq(su);const i=q.indexOf(su.step);if(i<0||i===q.length-1)return suDone();su.step=q[i+1];renderSetup();}
+function suDone(){const n=Object.keys(su.el||{}).length;sel={c:su.c,g:su.g,sg:su.sg||0,fl:su.fl||"",el:su.el||{},elSet:n>0};save();closeSetup();ui.day=null;render();toast("Розклад "+sel.g+" збережено");}
+
+/* ---------- профіль групи ---------- */
+function viewMe(){const C=course(sel.c);const fo=sel.fl?flOptions(sel.c,sel.g).find(x=>x.k===sel.fl):null;const sgs=subgroupsOf(sel.c,sel.g);
+  let h='<div class="h"><h2>Моя група</h2></div><div class="list">'+
+   '<div class="kv"><span>Курс і група</span><b>'+sel.c+' курс · '+esc(sel.g)+'</b></div>'+
+   (sgs.length?'<div class="kv"><span>Підгрупа</span><b>'+(sel.sg?sel.sg:'обидві')+'</b></div>':'')+
+   (flOptions(sel.c,sel.g).length?'<div class="kv"><span>Іноземна мова</span><b>'+(fo?LANG[fo.fl]+' · '+esc(fo.t):'не обрано')+'</b></div>':'')+
+   (electives(sel.c,sel.g).length?'<div class="kv"><span>Вибіркові</span><b>'+(sel.elSet?Object.keys(sel.el).length+' обрано':'не обрано')+'</b></div>':'')+
+   '<div class="kv"><span>Цей тиждень</span><b>'+WT[weekType(today0())]+'</b></div></div>'+
+   '<div class="sheet-list"><button class="btn" data-act="change">Змінити групу</button>'+(electives(sel.c,sel.g).length?'<button class="btn ghost" data-act="editEl">Змінити вибіркові</button>':'')+(flOptions(sel.c,sel.g).length?'<button class="btn ghost" data-act="pickFl">Змінити групу з іноземної</button>':'')+'<button class="btn ghost" data-act="share">Скопіювати посилання для своєї групи</button></div>'+
+   '<div class="h"><h2>Звідки розклад</h2></div><p class="note" style="margin-top:0">Перенесено з офіційних PDF юридичного факультету ЛНУ, 1 семестр 2026–2027'+(DATA.updated?' (станом на '+esc(DATA.updated)+')':'')+'. Якщо щось не збігається, перевір оригінал: '+
+   DATA.courses.map(c=>'<a href="'+esc(c.pdf)+'" target="_blank" rel="noopener">'+c.n+' курс</a>').join(", ")+'.</p>'+installHint(true);
+  return h;}
+
+/* ---------- PWA-підказка ---------- */
+function installHint(force){const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);const sa=window.navigator.standalone||matchMedia("(display-mode: standalone)").matches;let framed=false;try{framed=window.top!==window.self;}catch(e){framed=true;}
+  if(!ios||sa||framed)return"";let off=false;try{off=localStorage.getItem(KEY+".hint")==="off";}catch(e){}if(off&&!force)return"";
+  return '<div class="hint"><span>Щоб відкривати «Пару» як застосунок і без інтернету: у Safari натисни «Поділитися» → «На початковий екран».</span>'+(force?'':'<button data-act="hintOff" aria-label="Сховати">×</button>')+'</div>';}
+const demoNote=()=>'';
+
+/* ---------- каркас ---------- */
+const ICONS={today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 3h6"/></svg>',
+ week:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+ search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>'};
+function render(){if(!sel){$("app").innerHTML="";if(!su)openSetup();return;}
+  const fo=sel.fl?flOptions(sel.c,sel.g).find(x=>x.k===sel.fl):null;
+  const head='<header><div class="mark">Пара<i></i></div>'+fracHTML(weekType(today0()))+'<button class="grp" data-act="me" aria-label="Моя група: '+esc(sel.g)+'"><span>'+esc(sel.g)+'</span>'+(sel.sg?'<small>'+sel.sg+' пг</small>':'')+(fo&&fo.fl==="en"?'<small>англ</small>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></header>';
+  const v=ui.tab==="week"?viewWeek():ui.tab==="search"?viewSearch():ui.tab==="me"?viewMe():viewToday();
+  const tabs='<nav class="tabs" role="tablist">'+[["today","Сьогодні"],["week","Тиждень"],["search","Пошук"]].map(([k,n])=>'<button role="tab" data-act="tab" data-t="'+k+'" aria-selected="'+(ui.tab===k)+'">'+ICONS[k]+n+'</button>').join("")+'</nav>';
+  $("app").innerHTML='<div class="wrap">'+head+'<main>'+v+'</main></div>'+tabs;}
+function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2600);}
+
+const ACT={
+ tab:d=>{ui.tab=d.t;if(d.t==="today")ui.day=null;try{localStorage.setItem(KEY+".tab",d.t);}catch(e){}render();scrollTo(0,0);},
+ day:d=>{ui.day=parse(d.d);render();},
+ wk:d=>{ui.day=addDays(mondayOf(ui.day),7*Number(d.n));render();},
+ wt:d=>{ui.wt=d.t;render();},
+ me:()=>{ui.tab="me";render();scrollTo(0,0);},
+ change:()=>openSetup(),
+ pickFl:()=>openSetup({step:4,only:true,c:sel.c,g:sel.g,sg:sel.sg,fl:"",el:Object.assign({},sel.el||{})}),
+ q:d=>{ui.q=d.q;render();},
+ hintOff:()=>{try{localStorage.setItem(KEY+".hint","off");}catch(e){}render();},
+ share:()=>{const base=location.protocol.startsWith("http")&&!/claude\.ai|claudeusercontent/.test(location.host)?location.origin+location.pathname+"?g="+slug(sel.g):location.href.split("#")[0]+"#"+slug(sel.g);
+   const done=()=>toast("Посилання скопійовано: "+sel.g);
+   try{navigator.clipboard.writeText(base).then(done,()=>toast(base));}catch(e){toast(base);}},
+ suBack:()=>{if(su.step===1||su.only)return closeSetup();const q=suSeq(su);const i=q.indexOf(su.step);su.step=q[Math.max(0,i-1)];renderSetup();},
+ suC:d=>{su.c=Number(d.c);su.step=2;renderSetup();},
+ suG:d=>{su.g=d.g;suNext();},
+ suSg:d=>{su.sg=Number(d.n);suNext();},
+ suFl:d=>{su.fl=d.k;if(su.only)return suDone();suNext();},
+ suEl:d=>{su.el=su.el||{};if(d.el in su.el)delete su.el[d.el];else su.el[d.el]=0;su.keep=true;renderSetup();},
+ suEg:d=>{su.el=su.el||{};su.el[d.el]=Number(d.n);su.keep=true;renderSetup();},
+ suElDone:()=>suDone(),
+ suElSkip:()=>{su.el={};suDone();},
+ pickEl:()=>openSetup({step:5,only:true,c:sel.c,g:sel.g,sg:sel.sg,fl:sel.fl,el:Object.assign({},sel.el||{})}),
+ editEl:()=>openSetup({step:5,only:true,c:sel.c,g:sel.g,sg:sel.sg,fl:sel.fl,el:Object.assign({},sel.el||{})})
+};
+document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const f=ACT[b.dataset.act];if(f)f(b.dataset);});
+document.addEventListener("input",e=>{if(e.target.id==="q"){ui.q=e.target.value;$("res").innerHTML=searchRes();}});
+
+/* посилання на групу: ?g=yurd-1r або #yurd-1r */
+(function(){let code="";try{code=new URLSearchParams(location.search).get("g")||"";}catch(e){}if(!code&&/^#[a-z0-9-]+$/.test(location.hash))code=location.hash.slice(1);
+  if(!code)return;const hit=allGroups().find(x=>slug(x.g)===code.toLowerCase());if(!hit||(sel&&sel.g===hit.g))return;
+  su={step:2,c:hit.c,g:hit.g,sg:0,fl:""};$("setup").hidden=false;suNext();})();
+render();
+setInterval(()=>{if(ui.tab==="today"&&sel&&!document.hidden)render();},30000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&sel){ui.day=null;render();}});
+
+/* ---------- заставка при запуску ---------- */
+(function(){const sp=$("splash"),root=document.documentElement;if(!sp)return;let done=false;
+  const end=()=>{if(done)return;done=true;root.classList.remove("splashing");sp.remove();};
+  if(!sp.animate||matchMedia("(prefers-reduced-motion: reduce)").matches)return end();
+  root.classList.add("splashing");sp.addEventListener("click",end);setTimeout(end,4000); // дотик пропускає; запобіжник, якщо щось піде не так
+  const q=s=>sp.querySelector(s),mk=q(".sp-mark"),ara=q(".sp-ara");
+  const A=(el,kf,o)=>el.animate(kf,Object.assign({fill:"both"},o));
+  const fonts=document.fonts&&document.fonts.load?document.fonts.load('700 64px "Unbounded"',"Пара").catch(()=>{}):Promise.resolve();
+  Promise.race([fonts,new Promise(r=>setTimeout(r,500))]).then(()=>{if(done)return;try{
+    ara.style.width="auto";const W=ara.getBoundingClientRect().width;ara.style.width="0px";mk.style.opacity=1;
+    A(q(".sp-p"),[{opacity:0,transform:"scale(.6)"},{opacity:1,transform:"scale(1)"}],{duration:420,easing:"cubic-bezier(.2,.9,.3,1.15)"});
+    A(q(".sp-dot"),[{transform:"translateY(-.045em) scale(0)"},{transform:"translateY(-.045em) scale(1)"}],{duration:320,delay:220,easing:"cubic-bezier(.3,1.6,.5,1)"});
+    A(ara,[{width:"0px"},{width:W+"px"}],{duration:520,delay:620,easing:"cubic-bezier(.65,0,.35,1)"});
+    [...ara.children].forEach((c,i)=>A(c,[{opacity:0,transform:"translateY(.25em)"},{opacity:1,transform:"none"}],{duration:300,delay:700+i*90,easing:"ease-out"}));
+    setTimeout(fly,1300);}catch(e){end();}});
+  function fly(){if(done)return;sp.style.pointerEvents="none";const t=document.querySelector("header .mark");let a;
+    if(t){const r=mk.getBoundingClientRect(),b=t.getBoundingClientRect(),s=parseFloat(getComputedStyle(t).fontSize)/parseFloat(getComputedStyle(mk).fontSize);
+      a=A(mk,[{transform:"none"},{transform:"translate("+(b.left-r.left)+"px,"+(b.top-r.top)+"px) scale("+s+")"}],{duration:520,easing:"cubic-bezier(.5,0,.15,1)"});}
+    else a=A(mk,[{opacity:1,transform:"none"},{opacity:0,transform:"scale(.92)"}],{duration:320,easing:"ease-in"}); // ще не обрана група — шапки немає, просто зникає
+    A(q(".sp-bg"),[{opacity:1},{opacity:0}],{duration:420,delay:t?80:0,easing:"ease-out"});
+    a.finished.then(end,end);}
+})();
+/*SW*/
+</script>
